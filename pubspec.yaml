@@ -1,0 +1,12 @@
+name: advent_of_code
+description: Dart solutions for the Advent of Code 2019.
+
+environment:
+  sdk: '>=2.5.0 <3.0.0'
+
+#dependencies:
+#  path: ^1.6.0
+
+dev_dependencies:
+  pedantic: ^1.8.0
+  test: ^1.6.0

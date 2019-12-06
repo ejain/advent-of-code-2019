@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:equatable/equatable.dart';
 import 'package:quiver/check.dart';
 import 'package:test/test.dart';
 
@@ -8,158 +7,116 @@ void main() {
 
   group("Day 6", () {
 
-    Body build(Iterable<Orbit> orbits) {
-      final map = <String, Body>{};
-      for (var orbit in orbits) {
-        final parent = map.putIfAbsent(orbit.center, () => Body(orbit.center, []));
-        final object = map.putIfAbsent(orbit.object, () => Body(orbit.object, []));
-        checkState(object.parent == null, message: "${object.name} appears in multiple orbits");
-        parent.objects.add(object);
-        object.parent = parent;
-      }
-      return checkNotNull(map["COM"], message: "missing COM");
-    }
-
-    test("build bodies from orbits", () {
-      final COM = build([
-        Orbit("COM", "B"),
-        Orbit("B", "C"),
-        Orbit("C", "D"),
-        Orbit("B", "E"),
+    test("satellite depth", () {
+      final system = System.parse([
+        "COM)A",
+        "A)B",
+        "A)C",
       ]);
-      expect(COM.toString(), "COM)[B)[C)[D], E]]");
+      expect(system.depthOf("A"), 1);
+      expect(system.depthOf("C"), 2);
+      expect(() => system.depthOf("COM"), throwsArgumentError);
     });
-
-    int count(Body body, [int depth = 0]) {
-      return body.objects.fold(depth, (orbits, object) => orbits + count(object, depth + 1));
-    }
 
     test("count direct and indirect orbits", () {
-      expect(count(build([
-        Orbit("COM", "B"),
-        Orbit("B", "C"),
-        Orbit("C", "D"),
-        Orbit("D", "E"),
-        Orbit("E", "F"),
-        Orbit("B", "G"),
-        Orbit("G", "H"),
-        Orbit("D", "I"),
-        Orbit("E", "J"),
-        Orbit("J", "K"),
-        Orbit("K", "L"),
-      ])), 42);
+      expect(System.parse([
+        "COM)B",
+        "B)C",
+        "C)D",
+        "D)E",
+        "E)F",
+        "B)G",
+        "G)H",
+        "D)I",
+        "E)J",
+        "J)K",
+        "K)L",
+      ]).count(), 42);
     });
 
-    List<Orbit> input() => File("data/06.txt")
-      .readAsLinesSync()
-      .map(Orbit.parseLine)
-      .toList();
-
-    test("parse line", () {
-      expect(Orbit.parseLine("COM)B"), Orbit("COM", "B"));
-    });
+    System input() => System.parse(File("data/06.txt").readAsLinesSync());
 
     test("Part 1", () {
-      expect(count(build(input())), 158090);
+      expect(input().count(), 158090);
     });
 
-    test("find bodies in direct and indirect orbits", () {
-      final COM = build([
-        Orbit("COM", "A"),
-        Orbit("A", "B"),
-        Orbit("B", "C"),
+    test("list direct and indirect orbits", () {
+      final system = System.parse([
+        "COM)A",
+        "A)B",
+        "A)C",
       ]);
-      expect(COM.find("COM"), Body("COM"), reason: "self");
-      expect(COM.find("C"), Body("C"), reason: "indirect orbit");
-      expect(COM.find("X"), isNull, reason: "not in orbit");
+      expect(system.orbitsFor("A"), ["COM"]);
+      expect(system.orbitsFor("B"), ["A", "COM"]);
+      expect(() => system.orbitsFor("COM"), throwsArgumentError);
     });
 
-    int distance(Body from, Body to) {
-      if (from == to) {
-        return 0;
-      }
-      final distances = Map<Body, int>();
-      for (var distance = 0; from != null; from = from.parent) {
-        distances[from] = distance++;
-      }
-      for (var distance = 0; to != null; to = to.parent) {
-        if (distances.containsKey(to)) {
-          return distances[to] + distance;
-        }
-        ++distance;
-      }
-      return null;
-    }
-
-    test("find the distance between two bodies", () {
-      final COM = build([
-        Orbit("COM", "A"),
-        Orbit("A", "B"),
-        Orbit("A", "C"),
+    test("find the distance between two satellites", () {
+      final system = System.parse([
+        "COM)A",
+        "A)B",
+        "B)C",
+        "A)D",
+        "D)E",
       ]);
-      final A = COM.find("A");
-      final B = COM.find("B");
-      final C = COM.find("C");
-      expect(distance(A, A), 0, reason: "same body");
-      expect(distance(A, B), 1, reason: "one down");
-      expect(distance(B, A), 1, reason: "one up");
-      expect(distance(B, C), 2, reason: "one up and one down");
-      expect(distance(A, Body("X")), isNull, reason: "disconnected");
+      expect(system.distance("A", "A"), 0, reason: "same");
+      expect(system.distance("A", "B"), 1, reason: "one down");
+      expect(system.distance("B", "A"), 1, reason: "one up");
+      expect(system.distance("C", "E"), 2, reason: "one up and one down");
     });
 
     test("Part 2", () {
-      final COM = build(input());
-      final YOU = COM.find("YOU").parent;
-      final SAN = COM.find("SAN").parent;
-      expect(distance(YOU, SAN), 241);
+      expect(input().distance("YOU", "SAN"), 241);
     });
   });
 }
 
-class Orbit extends Equatable {
+class System {
 
-  final String center;
-  final String object;
+  final Map<String, String> _orbits;
 
-  const Orbit(this.center, this.object);
+  System.parse(Iterable<String> lines) : _orbits = Map.fromIterable(
+    lines.map((line) => line.trim().split(")")),
+    key: (tokens) => tokens[1],
+    value: (tokens) => tokens[0]);
 
-  static Orbit parseLine(String line) {
-    final tokens = line.trim().split(")");
-    checkArgument(tokens.length == 2, message: "can't parse $line");
-    return Orbit(tokens[0], tokens[1]);
+  int depthOf(String satellite) {
+    checkArgument(_orbits.containsKey(satellite), message: "not a satellite: $satellite");
+    int depth = -1;
+    while (satellite != null) {
+      satellite = _orbits[satellite];
+      ++depth;
+    }
+    return depth;
   }
 
-  @override
-  List<Object> get props => [center, object];
-
-  @override
-  String toString() => "$center)$object";
-}
-
-class Body extends Equatable {
-
-  final String name;
-  final List<Body> objects;
-  Body parent;
-
-  Body(this.name, [ this.objects = const [] ]);
-
-  Body find(String name) {
-    if (name == this.name) {
-      return this;
-    }
-    for (var object in objects) {
-      final found = object.find(name);
-      if (found != null) {
-        return found;
-      }
-    }
-    return null;
+  int count() {
+    return _orbits.keys.fold(0, (int total, String satellite) => total + depthOf(satellite));
   }
 
-  @override
-  List<Object> get props => [name];
+  List<String> orbitsFor(String satellite) {
+    var orbit = _orbits[satellite];
+    checkArgument(orbit != null, message: "not a satellite: $satellite");
+    final path = <String>[];
+    while (orbit != null) {
+      path.add(orbit);
+      orbit = _orbits[orbit];
+    }
+    return path;
+  }
 
-  @override
-  String toString() => objects.isNotEmpty ? "$name)$objects" : name;
+  int distance(String from, String to) {
+    return from != to ? _distance(orbitsFor(from), orbitsFor(to)) : 0;
+  }
+
+  int _distance(List<String> pathFrom, List<String> pathTo) {
+    if (pathFrom.isEmpty || pathTo.isEmpty) {
+      return null;
+    }
+    while (pathFrom.isNotEmpty && pathTo.isNotEmpty && pathFrom.last == pathTo.last) {
+      pathFrom.removeLast();
+      pathTo.removeLast();
+    }
+    return pathFrom.length + pathTo.length;
+  }
 }

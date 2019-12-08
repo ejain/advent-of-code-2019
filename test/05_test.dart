@@ -117,6 +117,15 @@ class Intcode {
     return List.unmodifiable(_outputs);
   }
 
+  int runStep(int input) {
+    _inputs.insert(0, input);
+    _outputs.clear();
+    while (_pointer != null && _outputs.isEmpty) {
+      Instruction.parse(_codes[_pointer]).run(this);
+    }
+    return _outputs.isNotEmpty ? _outputs.last : null;
+  }
+
   int param(int pointer, Mode mode) {
     var value = _codes[pointer];
     if (mode == Mode.position) {

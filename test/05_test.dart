@@ -1,7 +1,6 @@
 import 'dart:io';
 
-import 'package:equatable/equatable.dart';
-import 'package:quiver/check.dart';
+import 'package:advent_of_code/intcode.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -11,9 +10,9 @@ void main() {
     List<int> run(List<int> codes, List<int> inputs) => Intcode(codes, inputs).run();
 
     test("parse instructions", () {
-      expect(Instruction.parse(99), Instruction(99, []));
-      expect(Instruction.parse(1002), Instruction(2, [Mode.position, Mode.immediate]));
-      expect(Instruction.parse(10199), Instruction(99, [Mode.immediate, Mode.position, Mode.immediate]));
+      expect(Instruction.parse(99), Instruction(99, const []));
+      expect(Instruction.parse(1002), Instruction(2, const [PositionMode(), ImmediateMode()]));
+      expect(Instruction.parse(10199), Instruction(99, const [ImmediateMode(), PositionMode(), ImmediateMode()]));
     });
 
     test("input the output", () {
@@ -84,116 +83,3 @@ void main() {
     });
   });
 }
-
-class Intcode {
-
-  final List<int> _codes;
-  final List<int> _inputs;
-  final List<int> _outputs = [];
-  var _pointer = 0;
-
-  Intcode(List<int> codes, List<int> inputs) :
-    _codes = List.of(codes),
-    _inputs = inputs.reversed.toList();
-
-  int get pointer => _pointer;
-
-  set pointer(int next) {
-    _pointer = next != null ? checkListIndex(next, _codes.length, message: "invalid pointer: $next") : null;
-  }
-
-  int get(int i) => _codes[i];
-
-  void set(int i, int code) => _codes[i] = code;
-
-  int input() => _inputs.removeLast();
-
-  void output(int value) => _outputs.add(value);
-
-  List<int> run() {
-    while (_pointer != null) {
-      Instruction.parse(_codes[_pointer]).run(this);
-    }
-    return List.unmodifiable(_outputs);
-  }
-
-  int runStep(int input) {
-    _inputs.insert(0, input);
-    _outputs.clear();
-    while (_pointer != null && _outputs.isEmpty) {
-      Instruction.parse(_codes[_pointer]).run(this);
-    }
-    return _outputs.isNotEmpty ? _outputs.last : null;
-  }
-
-  int param(int pointer, Mode mode) {
-    var value = _codes[pointer];
-    if (mode == Mode.position) {
-      value = _codes[value];
-    }
-    return value;
-  }
-}
-
-class Instruction extends Equatable {
-
-  final int _opcode;
-  final List<Mode> _modes;
-
-  Instruction(this._opcode, this._modes);
-
-  static Instruction parse(int instructionCode) {
-    checkArgument(instructionCode > 0,  message: "invalid instruction code: $instructionCode");
-    final digits = instructionCode.toString().padLeft(2, "0").split("").reversed.map(int.parse).toList();
-    final modes = digits.sublist(2).map((mode) => Mode.values[mode]).toList();
-    return Instruction(digits[0] + 10 * digits[1], modes);
-  }
-
-  @override
-  List<Object> get props => [_opcode, _modes];
-
-  Mode mode(int param) => param < _modes.length ? _modes[param] : Mode.position;
-
-  void run(Intcode code) {
-    switch (_opcode) {
-      case 1: // add
-        code.set(code.get(code.pointer + 3), code.param(code.pointer + 1, mode(0)) + code.param(code.pointer + 2, mode(1)));
-        code.pointer += 4;
-        break;
-      case 2: // multiply
-        code.set(code.get(code.pointer + 3), code.param(code.pointer + 1, mode(0)) * code.param(code.pointer + 2, mode(1)));
-        code.pointer += 4;
-        break;
-      case 3: // input
-        code.set(code.get(code.pointer + 1), code.input());
-        code.pointer += 2;
-        break;
-      case 4: // output
-        code.output(code.param(code.pointer + 1, mode(0)));
-        code.pointer += 2;
-        break;
-      case 5: // jump if true
-        final value = code.param(code.pointer + 1, mode(0));
-        code.pointer = value != 0 ? code.param(code.pointer + 2, mode(1)) : code.pointer + 3;
-        break;
-      case 6: // jump if false
-        final value = code.param(code.pointer + 1, mode(0));
-        code.pointer = value == 0 ? code.param(code.pointer + 2, mode(1)) : code.pointer + 3;
-        break;
-      case 7: // less than
-        code.set(code.get(code.pointer + 3), code.param(code.pointer + 1, mode(0)) < code.param(code.pointer + 2, mode(1)) ? 1 : 0);
-        code.pointer += 4;
-        break;
-      case 8: // equals
-        code.set(code.get(code.pointer + 3), code.param(code.pointer + 1, mode(0)) == code.param(code.pointer + 2, mode(1)) ? 1 : 0);
-        code.pointer += 4;
-        break;
-      case 99:
-        code.pointer = null;
-        break;
-      default: throw ArgumentError("unsupported opcode: $_opcode");
-    }
-  }
-}
-
-enum Mode { position, immediate }

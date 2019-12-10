@@ -1,9 +1,8 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:advent_of_code/intcode.dart';
 import 'package:test/test.dart';
-
-import '05_test.dart';
 
 void main() {
 

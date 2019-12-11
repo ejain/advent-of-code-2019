@@ -40,14 +40,18 @@ class Intcode {
     return List.unmodifiable(_outputs);
   }
 
-  int runStep(int input) {
-    _inputs.insert(0, input);
+  int runStep([ int input ]) {
+    if (input != null) {
+      _inputs.insert(0, input);
+    }
     _outputs.clear();
     while (_pointer != null && _outputs.isEmpty) {
       Instruction.parse(get(_pointer)).run(this);
     }
     return _outputs.isNotEmpty ? _outputs.last : null;
   }
+
+  bool get isTerminated => pointer == null;
 }
 
 class Instruction extends Equatable {

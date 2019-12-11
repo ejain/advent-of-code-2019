@@ -23,44 +23,7 @@ void main() {
       expect(() => grid.isEmpty(Point(0, 2)), throwsArgumentError, reason: "(0, 2)");
     });
 
-    test("get sight lines (3x3)", () {
-      final grid = Grid.parse("""
-        ###
-        ###
-        ###
-      """);
-      final actual = grid.getSightLines(Point(1, 1)).toList();
-      expect(actual, [
-        [Point(1, 0)],
-        [Point(2, 0)],
-        [Point(2, 1)],
-        [Point(2, 2)],
-        [Point(1, 2)],
-        [Point(0, 2)],
-        [Point(0, 1)],
-        [Point(0, 0)],
-      ]);
-    });
-
-    test("get sight lines (5x5)", () {
-      final grid = Grid.parse("""
-        #####
-        #####
-        #####
-        #####
-        #####
-      """);
-      final actual = grid.getSightLines(Point(2, 2));
-      expect(actual, allOf(hasLength(16), containsAll([
-        [Point(2, 1), Point(2, 0)],
-        [Point(0, 3)],
-        [Point(3, 1), Point(4, 0)],
-        [Point(4, 1)],
-        [Point(3, 2), Point(4, 2)],
-      ])));
-    });
-
-    test("find visible points", () {
+    test("find targets", () {
       final grid = Grid.parse("""
         .#..#
         .....
@@ -68,16 +31,16 @@ void main() {
         ....#
         ...##
       """);
-      expect(grid.findVisible(Point(1, 0)), hasLength(7));
-      expect(grid.findVisible(Point(4, 0)), hasLength(7));
-      expect(grid.findVisible(Point(0, 2)), hasLength(6));
-      expect(grid.findVisible(Point(1, 2)), hasLength(7));
-      expect(grid.findVisible(Point(2, 2)), hasLength(7));
-      expect(grid.findVisible(Point(3, 2)), hasLength(7));
-      expect(grid.findVisible(Point(4, 2)), hasLength(5));
-      expect(grid.findVisible(Point(4, 3)), hasLength(7));
-      expect(grid.findVisible(Point(3, 4)), hasLength(8));
-      expect(grid.findVisible(Point(4, 4)), hasLength(7));
+      expect(grid.findTargets(Point(1, 0)), hasLength(7));
+      expect(grid.findTargets(Point(4, 0)), hasLength(7));
+      expect(grid.findTargets(Point(0, 2)), hasLength(6));
+      expect(grid.findTargets(Point(1, 2)), hasLength(7));
+      expect(grid.findTargets(Point(2, 2)), hasLength(7));
+      expect(grid.findTargets(Point(3, 2)), hasLength(7));
+      expect(grid.findTargets(Point(4, 2)), hasLength(5));
+      expect(grid.findTargets(Point(4, 3)), hasLength(7));
+      expect(grid.findTargets(Point(3, 4)), hasLength(8));
+      expect(grid.findTargets(Point(4, 4)), hasLength(7));
       expect(grid.findCenter(), Point(3, 4));
     });
 
@@ -86,19 +49,19 @@ void main() {
     test("Part 1", () {
       final grid = Grid.parse(input());
       final best = grid.findCenter();
-      expect(grid.findVisible(best), hasLength(274));
+      expect(grid.findTargets(best), hasLength(274));
       expect(best, Point(19, 14));
     });
 
-    test("convert point to degrees", () {
-      expect(Point(0, -1).toDegrees(), 0);
-      expect(Point(1, -1).toDegrees(), 45);
-      expect(Point(1, 0).toDegrees(), 90);
-      expect(Point(1, 1).toDegrees(), 135);
-      expect(Point(0, 1).toDegrees(), 180);
-      expect(Point(-1, 1).toDegrees(), 225);
-      expect(Point(-1, 0).toDegrees(), 270);
-      expect(Point(-1, -1).toDegrees(), 315);
+    test("directions", () {
+      expect(Point(0, -1).direction(), 0);
+      expect(Point(1, -1).direction(), 45);
+      expect(Point(1, 0).direction(), 90);
+      expect(Point(1, 1).direction(), 135);
+      expect(Point(0, 1).direction(), 180);
+      expect(Point(-1, 1).direction(), 225);
+      expect(Point(-1, 0).direction(), 270);
+      expect(Point(-1, -1).direction(), 315);
     });
 
     test("clear a point", () {
@@ -116,7 +79,7 @@ void main() {
     List<Point> vaporize(Grid grid, Point center, int shots) {
       var vaporized = <Point>[];
       while (shots > 0) {
-        final targets = grid.findVisible(center);
+        final targets = grid.findTargets(center);
         if (targets.isEmpty) {
           break;
         }
@@ -142,6 +105,35 @@ void main() {
       final vaporized = vaporize(grid, Point(8, 3), 100);
       expect(vaporized, hasLength(36));
       expect(vaporized.last, Point(14, 3));
+    });
+
+    test("vaporize, large example", () {
+      final grid = Grid.parse("""
+        .#..##.###...#######
+        ##.############..##.
+        .#.######.########.#
+        .###.#######.####.#.
+        #####.##.#.##.###.##
+        ..#####..#.#########
+        ####################
+        #.####....###.#.#.##
+        ##.#################
+        #####.##.###..####..
+        ..######..##.#######
+        ####.##.####...##..#
+        .#####..#.######.###
+        ##...#.##########...
+        #.##########.#######
+        .####.#.###.###.#.##
+        ....##.##.###..#####
+        .#.#.###########.###
+        #.#.#.#####.####.###
+        ###.##.####.##.#..##
+      """);
+      final vaporized = vaporize(grid, Point(11, 13), 300);
+      expect(vaporized, hasLength(299));
+      expect(vaporized.first, Point(11, 12));
+      expect(vaporized.last, Point(11, 1));
     });
 
     test("Part 2", () {
@@ -175,63 +167,27 @@ class Grid {
     return point.x + point.y * _width;
   }
 
-  bool contains(Point point) => point.x >= 0 &&point.x < _width && point.y >= 0 && point.y < _height;
+  bool contains(Point point) => point.x >= 0 && point.x < _width && point.y >= 0 && point.y < _height;
 
-  List<List<Point>> getSightLines(Point source) {
-    checkArgument(contains(source), message: "invalid point: $source");
-    final sightLines = SplayTreeMap<Point, List<Point>>((a, b) => a.toDegrees().compareTo(b.toDegrees()));
-    final seen = {source};
-    for (var delta in _deltas(source)) {
-      final steps = <Point>[];
-      for (var step = source; contains(step); step = step.add(delta)) {
-        if (seen.add(step)) {
-          steps.add(step);
-        }
-      }
-      if (steps.isNotEmpty) {
-        sightLines[delta] = steps;
-      }
-    }
-    return sightLines.values.toList();
-  }
-
-  Iterable<Point> _deltas(Point from) sync* {
-    for (var dx in _iterate(from.x, _width)) {
-      for (var dy in _iterate(from.y, _height)) {
-        if (dy != 0 || dx != 0) {
-          yield Point(dx, dy);
+  List<Point> findTargets(Point source) {
+    final nearestTargets = SplayTreeMap<double, Point>();
+    for (Point target in _iterator().where((point) => !isEmpty(point))) {
+      if (target != source) {
+        final delta = source.delta(target);
+        final nearest = nearestTargets[delta.direction()];
+        if (nearest == null || delta.length() < source.delta(nearest).length()) {
+          nearestTargets[delta.direction()] = target;
         }
       }
     }
-  }
-
-  Iterable<int> _iterate(int from, int limit) sync* {
-    for (var i = 0; i < limit - from; ++i) {
-      yield i;
-    }
-    for (var i = 0; i >= -from; --i) {
-      yield i;
-    }
-  }
-
-  Set<Point> findVisible(Point source) {
-    final visible = Set<Point>();
-    for (var sightLine in getSightLines(source)) {
-      for (var target in sightLine) {
-        if (!isEmpty(target)) {
-          visible.add(target);
-          break;
-        }
-      }
-    }
-    return visible;
+    return nearestTargets.values.toList();
   }
 
   Point findCenter() {
     Point center;
     var maxCount = 0;
     for (var point in _iterator().where((point) => !isEmpty(point))) {
-      var count = findVisible(point).length;
+      var count = findTargets(point).length;
       if (point == null || count > maxCount) {
         center = point;
         maxCount = count;
@@ -242,7 +198,7 @@ class Grid {
 
   Iterable<Point> _iterator() sync* {
     for (var x = 0; x < _width; ++x) {
-      for (var y = 0; y < _width; ++y) {
+      for (var y = 0; y < _height; ++y) {
         yield Point(x, y);
       }
     }
@@ -251,20 +207,23 @@ class Grid {
 
 class Position {
 
-  static const empty = Position(".");
-  static const asteroid = Position("#");
+  static const empty = Position._(".");
+  static const asteroid = Position._("#");
 
   final String _symbol;
 
-  const Position(this._symbol);
+  const Position._(this._symbol);
 
   static Position parse(String s) {
     switch (s) {
       case ".": return empty;
-      case "#": return Position.asteroid;
+      case "#": return asteroid;
       default: throw ArgumentError("invalid position: $s");
     }
   }
+
+  @override
+  String toString() => _symbol;
 }
 
 class Point extends Equatable {
@@ -275,13 +234,17 @@ class Point extends Equatable {
 
   Point add(Point delta) => Point(x + delta.x, y + delta.y);
 
-  double toDegrees() {
+  double direction() {
     var value = (180 * atan2(x, -y) / pi);
     if (value < 0) {
       value += 360;
     }
     return value;
   }
+
+  double length() => sqrt(pow(x, 2) + pow(y, 2));
+
+  Point delta(Point point) => Point(point.x - x, point.y - y);
 
   @override
   List<Object> get props => [x, y];

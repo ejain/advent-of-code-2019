@@ -2,7 +2,7 @@ name: advent_of_code
 description: Dart solutions for the Advent of Code 2019.
 
 environment:
-  sdk: '>=2.5.0 <3.0.0'
+  sdk: '>=2.6.0 <3.0.0'
 
 dependencies:
   equatable: ^1.0.0

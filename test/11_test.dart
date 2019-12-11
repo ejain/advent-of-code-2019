@@ -113,7 +113,24 @@ void main() {
 
 enum Turn { left, right }
 
-enum Heading { up, down, left, right }
+enum Heading { up, right, down, left }
+
+extension on Heading {
+
+  Heading turn(Turn turn) {
+    return Heading.values[(index + (turn.index * 2 - 1)) % Heading.values.length];
+  }
+
+  Point get delta {
+    switch (this) {
+      case Heading.up: return const Point(0, -1);
+      case Heading.down: return const Point(0, 1);
+      case Heading.left: return const Point(-1, 0);
+      case Heading.right: return const Point(1, 0);
+    }
+    return null;
+  }
+}
 
 enum Color { black, white }
 
@@ -122,6 +139,8 @@ class Point extends Equatable {
   final int x, y;
 
   const Point(this.x, this.y);
+
+  Point add(Point delta) => Point(x + delta.x, y + delta.y);
 
   @override
   List<Object> get props => [x, y];
@@ -145,56 +164,8 @@ class Robot {
   void paint(Color color) => _hull.paint(_panel, color);
 
   void move(Turn turn) {
-    switch (_heading) {
-      case Heading.up:
-        switch (turn) {
-          case Turn.left:
-            _panel = Point(_panel.x - 1, _panel.y);
-            _heading = Heading.left;
-            break;
-          case Turn.right:
-            _panel = Point(_panel.x + 1, _panel.y);
-            _heading = Heading.right;
-            break;
-        }
-        break;
-      case Heading.down:
-        switch (turn) {
-          case Turn.left:
-            _panel = Point(_panel.x + 1, _panel.y);
-            _heading = Heading.right;
-            break;
-          case Turn.right:
-            _panel = Point(_panel.x - 1, _panel.y);
-            _heading = Heading.left;
-            break;
-        }
-        break;
-      case Heading.left:
-        switch (turn) {
-          case Turn.left:
-            _panel = Point(_panel.x, _panel.y + 1);
-            _heading = Heading.down;
-            break;
-          case Turn.right:
-            _panel = Point(_panel.x, _panel.y - 1);
-            _heading = Heading.up;
-            break;
-        }
-        break;
-      case Heading.right:
-        switch (turn) {
-          case Turn.left:
-            _panel = Point(_panel.x, _panel.y - 1);
-            _heading = Heading.up;
-            break;
-          case Turn.right:
-            _panel = Point(_panel.x, _panel.y + 1);
-            _heading = Heading.down;
-            break;
-        }
-        break;
-    }
+    _heading = _heading.turn(turn);
+    _panel = _panel.add(_heading.delta);
   }
 }
 
@@ -208,15 +179,24 @@ class Hull {
 
   int numPainted() => _painted.length;
 
+  Point _topLeft() => Point(
+    _painted.keys.map((point) => point.x).reduce(min),
+    _painted.keys.map((point) => point.y).reduce(min)
+  );
+
+  Point _bottomRight() => Point(
+    _painted.keys.map((point) => point.x).reduce(max),
+    _painted.keys.map((point) => point.y).reduce(max)
+  );
+
   @override
   String toString() {
     final buffer = StringBuffer();
-    final topLeft = Point(_painted.keys.map((point) => point.x).reduce(min), _painted.keys.map((point) => point.y).reduce(min));
-    final bottomRight = Point(_painted.keys.map((point) => point.x).reduce(max), _painted.keys.map((point) => point.y).reduce(max));
+    final topLeft = _topLeft();
+    final bottomRight = _bottomRight();
     for (var y = topLeft.y; y <= bottomRight.y; ++y) {
       for (var x = topLeft.x; x <= bottomRight.x; ++x) {
-        final color = _painted[Point(x, y)] ?? Color.black;
-        buffer.write(color == Color.white ? " " : "█");
+        buffer.write(getColor(Point(x, y)) == Color.white ? " " : "█");
       }
       buffer.writeln();
     }

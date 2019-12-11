@@ -171,7 +171,7 @@ class Robot {
 
 class Hull {
 
-  final _painted = Map<Point, Color>();
+  final _painted = <Point, Color>{};
 
   void paint(Point panel, Color color) => _painted[panel] = color;
 

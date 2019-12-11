@@ -163,7 +163,7 @@ class Grid {
   void clear(Point point) => _positions[_offset(point)] = Position.empty;
 
   int _offset(Point point) {
-    checkArgument(contains(point), message: "invalid point: ${point}");
+    checkArgument(contains(point), message: "invalid point: $point");
     return point.x + point.y * _width;
   }
 
@@ -171,7 +171,7 @@ class Grid {
 
   List<Point> findTargets(Point source) {
     final nearestTargets = SplayTreeMap<double, Point>();
-    for (Point target in _iterator().where((point) => !isEmpty(point))) {
+    for (var target in _iterator().where((point) => !isEmpty(point))) {
       if (target != source) {
         final delta = source.delta(target);
         final nearest = nearestTargets[delta.direction()];

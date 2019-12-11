@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
 
-typedef bool Validator(Iterable<int> digits);
+typedef Validator = bool Function(Iterable<int> digits);
 
 void main() {
 

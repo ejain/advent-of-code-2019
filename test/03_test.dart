@@ -59,7 +59,7 @@ void main() {
     }
 
     Set<Point> play(List<Move> moves) {
-      var visited = Set<Point>();
+      var visited = <Point>{};
       var current = Point.origin;
       for (var move in moves) {
         for (var i = 0; i < move.distance; ++i) {
@@ -95,7 +95,7 @@ void main() {
     });
 
     Map<Point, int> countSteps(List<Move> moves) {
-      var visited = Map<Point, int>();
+      var visited = <Point, int>{};
       var current = Point.origin;
       var steps = 0;
       for (var move in moves) {

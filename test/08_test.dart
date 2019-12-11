@@ -82,7 +82,7 @@ class Image {
         return value;
       }
     }
-    return null;
+    return 2;
   }
 
   @override

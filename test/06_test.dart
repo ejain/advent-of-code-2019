@@ -82,7 +82,7 @@ class System {
 
   int depthOf(String satellite) {
     checkArgument(_orbits.containsKey(satellite), message: "not a satellite: $satellite");
-    int depth = -1;
+    var depth = -1;
     while (satellite != null) {
       satellite = _orbits[satellite];
       ++depth;
@@ -110,9 +110,6 @@ class System {
   }
 
   int _distance(List<String> pathFrom, List<String> pathTo) {
-    if (pathFrom.isEmpty || pathTo.isEmpty) {
-      return null;
-    }
     while (pathFrom.isNotEmpty && pathTo.isNotEmpty && pathFrom.last == pathTo.last) {
       pathFrom.removeLast();
       pathTo.removeLast();

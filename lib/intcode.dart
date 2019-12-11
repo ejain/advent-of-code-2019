@@ -6,18 +6,14 @@ class Intcode {
   final Map<int, int> _codes = {};
   final List<int> _inputs;
   final List<int> _outputs = [];
-  var _pointer = 0;
-  var base = 0;
+  int pointer = 0;
+  int base = 0;
 
   Intcode(List<int> codes, List<int> inputs) : _inputs = inputs.reversed.toList() {
     for (var i = 0; i < codes.length; ++i) {
       _codes[i] = codes[i];
     }
   }
-
-  int get pointer => _pointer;
-
-  set pointer(int next) => _pointer = next;
 
   int get(int i) {
     checkArgument(i >= 0, message: "must not be negative: $i");
@@ -34,8 +30,8 @@ class Intcode {
   void output(int value) => _outputs.add(value);
 
   List<int> run() {
-    while (_pointer != null) {
-      Instruction.parse(get(_pointer)).run(this);
+    while (pointer != null) {
+      Instruction.parse(get(pointer)).run(this);
     }
     return List.unmodifiable(_outputs);
   }
@@ -45,8 +41,8 @@ class Intcode {
       _inputs.insert(0, input);
     }
     _outputs.clear();
-    while (_pointer != null && _outputs.isEmpty) {
-      Instruction.parse(get(_pointer)).run(this);
+    while (pointer != null && _outputs.isEmpty) {
+      Instruction.parse(get(pointer)).run(this);
     }
     return _outputs.isNotEmpty ? _outputs.last : null;
   }

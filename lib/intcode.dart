@@ -25,9 +25,22 @@ class Intcode {
     _codes[i] = code;
   }
 
-  int input() => _inputs.removeLast();
+  int input() {
+    if (_inputs.isEmpty) {
+      throw MissingInputException();
+    }
+    return _inputs.removeLast();
+  }
 
   void output(int value) => _outputs.add(value);
+
+  List<int> drain() {
+    final outputs = List.of(_outputs);
+    _outputs.clear();
+    return outputs;
+  }
+
+  void addInput(int value) => _inputs.add(value);
 
   List<int> run() {
     while (pointer != null) {
@@ -115,6 +128,10 @@ class Instruction extends Equatable {
       default: throw ArgumentError("unsupported opcode: $_opcode");
     }
   }
+}
+
+class MissingInputException implements Exception {
+
 }
 
 abstract class Mode {

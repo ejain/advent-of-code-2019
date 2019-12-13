@@ -7,13 +7,13 @@ void main() {
 
     test("apply gravity and velocity to a moon", () {
 
-      final moon = Moon(Vector(1, 2, 3));
+      var moon = Moon(Vector(1, 2, 3));
       expect(moon, Moon(Vector(1, 2, 3), Vector(0, 0, 0)));
 
-      moon.applyGravity(Vector(-1, 2, 4));
+      moon = moon.applyGravity(Vector(-1, 2, 4));
       expect(moon, Moon(Vector(1, 2, 3), Vector(-1, 0, 1)));
 
-      moon.applyVelocity();
+      moon = moon.applyVelocity();
       expect(moon, Moon(Vector(0, 2, 4), Vector(-1, 0, 1)));
     });
 
@@ -24,20 +24,20 @@ void main() {
 
     test("simulate steps", () {
 
-      final system = System([
+      var system = System([
         Moon(Vector(-1, 0, 2)),
         Moon(Vector(2, -10, -7)),
         Moon(Vector(4, -8, 8)),
         Moon(Vector(3, 5, -1)),
       ]);
 
-      system.simulate(steps: 1);
+      system = system.simulate(steps: 1);
       expect(system.moons[0], Moon(Vector(2, -1, 1), Vector(3, -1, -1)));
       expect(system.moons[1], Moon(Vector(3, -7, -4), Vector(1, 3, 3)));
       expect(system.moons[2], Moon(Vector(1, -7, 5), Vector(-3, 1, -3)));
       expect(system.moons[3], Moon(Vector(2, 2, 0), Vector(-1, -3, 1)));
 
-      system.simulate(steps: 9);
+      system = system.simulate(steps: 9);
       expect(system.moons[0], Moon(Vector(2, 1, -3), Vector(-3, -2, 1)));
       expect(system.moons[1], Moon(Vector(1, -8, 0), Vector(-1, 1, 3)));
       expect(system.moons[2], Moon(Vector(3, -6, 1), Vector(3, 2, -3)));
@@ -53,9 +53,7 @@ void main() {
     ]);
 
     test("Part 1", () {
-      final system = input();
-      system.simulate(steps: 1000);
-      expect(system.energy(), 7988);
+      expect(input().simulate(steps: 1000).energy(), 7988);
     });
 
     test("find the least common multiple", () {
@@ -105,8 +103,8 @@ class Vector extends Equatable {
 
 class Moon extends Equatable {
 
-  Vector _position;
-  Vector _velocity;
+  final Vector _position;
+  final Vector _velocity;
 
   Moon(this._position, [ this._velocity = const Vector(0, 0, 0) ]);
 
@@ -114,16 +112,16 @@ class Moon extends Equatable {
 
   Vector get velocity => _position;
 
-  void applyGravity(Vector position) {
-    _velocity = _velocity.add(Vector(
+  Moon applyGravity(Vector position) {
+    return Moon(_position, _velocity.add(Vector(
       (position.x - _position.x).sign,
       (position.y - _position.y).sign,
       (position.z - _position.z).sign
-    ));
+    )));
   }
 
-  void applyVelocity() {
-    _position = _position.add(_velocity);
+  Moon applyVelocity() {
+    return Moon(_position.add(_velocity), _velocity);
   }
 
   int energy() => _position.sum() * _velocity.sum();
@@ -141,20 +139,19 @@ class System extends Equatable {
 
   System(Iterable<Moon> moons) : moons = List.unmodifiable(moons);
 
-  void simulate({int steps = 1}) {
+  System simulate({int steps = 1}) {
+    var system = this;
     for (var step = 0; step < steps; ++step) {
-      for (var a in moons) {
-        for (var b in moons) {
-          if (!identical(a, b)) {
-            a.applyGravity(b.position);
-          }
-        }
-      }
-      for (var moon in moons) {
-        moon.applyVelocity();
-      }
+      system = system._simulate();
     }
+    return system;
   }
+
+  System _simulate() => System(moons.map((moon) {
+    return moons.where((other) => !identical(other, moon))
+      .fold(moon, (moon, other) => moon.applyGravity(other._position))
+      .applyVelocity();
+  }));
 
   int energy() => moons.fold(0, (energy, moon) => energy + moon.energy());
 
@@ -174,18 +171,14 @@ class System extends Equatable {
 
 class Moon1D extends Equatable {
 
-  int _position;
-  int _velocity;
+  final int _position;
+  final int _velocity;
 
   Moon1D(this._position, [ this._velocity = 0 ]);
 
-  void applyGravity(int position) {
-    _velocity += (position - _position).sign;
-  }
+  Moon1D applyGravity(int position) => Moon1D(_position, _velocity + (position - _position).sign);
 
-  void applyVelocity() {
-    _position += _velocity;
-  }
+  Moon1D applyVelocity() => Moon1D(_position + _velocity, _velocity);
 
   @override
   List<Object> get props => [_position, _velocity];
@@ -200,34 +193,25 @@ class System1D extends Equatable {
 
   System1D(Iterable<Moon1D> moons) : moons = List.unmodifiable(moons);
 
-  void _simulate({int steps = 1}) {
-    for (var step = 0; step < steps; ++step) {
-      for (var a in moons) {
-        for (var b in moons) {
-          if (!identical(a, b)) {
-            a.applyGravity(b._position);
-          }
-        }
-      }
-      for (var moon in moons) {
-        moon.applyVelocity();
-      }
-    }
-  }
+  System1D _simulate() => System1D(moons.map((moon) {
+    return moons.where((other) => !identical(other, moon))
+      .fold(moon, (moon, other) => moon.applyGravity(other._position))
+      .applyVelocity();
+  }));
 
   int findCycleLength() {
     const maxSteps = 1000000000000;
-    final system = System1D([
+    var system = System1D([
       for (var moon in moons)
         Moon1D(moon._position, moon._velocity)
     ]);
     for (var step = 1; step <= maxSteps; ++step) {
-      system._simulate(steps: 1);
+      system = system._simulate();
       if (system == this) {
         return step;
       }
     }
-    return 0;
+    throw StateError("no cycles within $maxSteps steps");
   }
 
   @override

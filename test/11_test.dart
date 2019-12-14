@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:advent_of_code/intcode.dart';
 import 'package:equatable/equatable.dart';
+import 'package:quiver/check.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -78,14 +79,11 @@ void main() {
       final robot = Robot(hull);
       final intcode = Intcode(input(), []);
       do {
-        final color = intcode.runStep(hull.getColor(robot.panel).index);
-        if (color != null) {
-          robot.paint(Color.values[color]);
-        }
-        final turn = intcode.runStep();
-        if (turn != null) {
-          robot.move(Turn.values[turn]);
-        }
+        intcode.addInput(hull.getColor(robot.panel).index);
+        final outputs = intcode.run();
+        checkState(outputs.length == 2);
+        robot.paint(Color.values[outputs[0]]);
+        robot.move(Turn.values[outputs[1]]);
       } while (!intcode.isTerminated);
     }
 

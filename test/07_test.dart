@@ -118,5 +118,8 @@ class Amplifier {
 
   Amplifier(List<int> codes, int setting) : _intcode = Intcode(codes, [setting]);
 
-  int run(int input) => _intcode.runStep(input);
+  int run(int input) {
+    _intcode.addInput(input);
+    return _intcode.next();
+  }
 }

@@ -34,30 +34,36 @@ class Intcode {
 
   void output(int value) => _outputs.add(value);
 
-  List<int> drain() {
+  void addInput(int input) => _inputs.insert(0, input);
+
+  List<int> run() {
+    try {
+      while (pointer != null) {
+        Instruction.parse(get(pointer)).run(this);
+      }
+    } on MissingInputException {
+
+    }
+    return _drain();
+  }
+
+  int next() {
+    try {
+      while (pointer != null && _outputs.isEmpty) {
+        Instruction.parse(get(pointer)).run(this);
+      }
+    } on MissingInputException {
+
+    }
+    final outputs = _drain();
+    checkState(outputs.length <= 1, message: "expected a single output");
+    return outputs.isNotEmpty ? outputs.first : null;
+  }
+
+  List<int> _drain() {
     final outputs = List.of(_outputs);
     _outputs.clear();
     return outputs;
-  }
-
-  void addInput(int value) => _inputs.add(value);
-
-  List<int> run() {
-    while (pointer != null) {
-      Instruction.parse(get(pointer)).run(this);
-    }
-    return List.unmodifiable(_outputs);
-  }
-
-  int runStep([ int input ]) {
-    if (input != null) {
-      _inputs.insert(0, input);
-    }
-    _outputs.clear();
-    while (pointer != null && _outputs.isEmpty) {
-      Instruction.parse(get(pointer)).run(this);
-    }
-    return _outputs.isNotEmpty ? _outputs.last : null;
   }
 
   bool get isTerminated => pointer == null;

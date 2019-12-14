@@ -85,13 +85,13 @@ class Screen {
   Point get paddle => _paddle;
 
   Point _topLeft() => Point(
-      _tiles.keys.map((point) => point.x).reduce(min),
-      _tiles.keys.map((point) => point.y).reduce(min)
+    _tiles.keys.map((point) => point.x).reduce(min),
+    _tiles.keys.map((point) => point.y).reduce(min)
   );
 
   Point _bottomRight() => Point(
-      _tiles.keys.map((point) => point.x).reduce(max),
-      _tiles.keys.map((point) => point.y).reduce(max)
+    _tiles.keys.map((point) => point.x).reduce(max),
+    _tiles.keys.map((point) => point.y).reduce(max)
   );
 
   @override
@@ -125,38 +125,28 @@ class Arcade {
   final _screen = Screen();
   int _score = 0;
 
-  Arcade(List<int> codes) : _intcode = Intcode(codes, []);
+  Arcade(List<int> codes) : _intcode = Intcode(codes, const []);
 
   Screen get screen => _screen;
 
   int get score => _score;
 
   void start() {
-    try {
-      _intcode.run();
-    } on MissingInputException {
-    } finally {
-      _process(_intcode.drain().reversed.toList());
-    }
+    _process(_intcode.run());
   }
 
   bool input(Position position) {
     _intcode.addInput(position.inputCode);
-    try {
-      _process(_intcode.run().reversed.toList());
-      return false;
-    } on MissingInputException {
-      _process(_intcode.drain().reversed.toList());
-      return true;
-    }
+    _process(_intcode.run());
+    return _intcode.isTerminated;
   }
 
   void _process(List<int> output) {
     checkState(output.length % 3 == 0, message: "expected triples");
-    while (output.isNotEmpty) {
-      final x = output.removeLast();
-      final y = output.removeLast();
-      final z = output.removeLast();
+    for (var i = 0; i + 2 < output.length; i += 3) {
+      final x = output[i];
+      final y = output[i + 1];
+      final z = output[i + 2];
       if (x == -1 && y == 0) {
         _score = z;
       } else {
@@ -177,7 +167,7 @@ class Player {
 
   int play(Arcade arcade) {
     while (arcade.screen.blocks > 0) {
-      if (!arcade.input(_next(arcade.screen))) {
+      if (arcade.input(_next(arcade.screen))) {
         break;
       }
     }

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:advent_of_code/intcode.dart';
+import 'package:quiver/iterables.dart' show cycle;
 import 'package:test/test.dart';
 
 void main() {
@@ -63,20 +64,10 @@ void main() {
       expect(findMaxSignal(input()), 272368);
     });
 
-    Iterable<T> forever<T>(List<T> items) sync* {
-      for (var i = 0;; ++i) {
-        yield items[i % items.length];
-      }
-    }
-
-    test("iterate forever", () {
-      expect(forever([1, 2, 3]).take(4), [1, 2, 3, 1]);
-    });
-
     int calculateSignalInFeedbackLoopMode(List<int> codes, List<int> settings) {
       final amplifiers = settings.map((setting) => Amplifier(codes, setting)).toList();
       var signal = 0;
-      for (var amplifier in forever(amplifiers)) {
+      for (var amplifier in cycle(amplifiers)) {
         final result = amplifier.run(signal);
         if (result == null) {
           break;

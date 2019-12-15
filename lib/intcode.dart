@@ -15,6 +15,16 @@ class Intcode {
     }
   }
 
+  Intcode copy() {
+    final copy = Intcode([], []);
+    copy._codes.addAll(_codes);
+    copy._inputs.addAll(_inputs);
+    copy._outputs.addAll(_outputs);
+    copy.pointer = pointer;
+    copy.base = base;
+    return copy;
+  }
+
   int get(int i) {
     checkArgument(i >= 0, message: "must not be negative: $i");
     return _codes[i] ?? 0;

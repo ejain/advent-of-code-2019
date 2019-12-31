@@ -125,7 +125,7 @@ class Maze {
   final Map<Point, Portal> _portals = {};
   Point start, end;
 
-  Maze._(this.dimensions, this._tiles, { multilevel = false }) {
+  Maze._(this.dimensions, this._tiles, { bool multilevel = false }) {
     for (var position in _tiles.keys.where(isOpen)) {
       final portal = _getPortal(position);
       if (portal == null) {

@@ -21,7 +21,7 @@ void main() {
     }
 
     test("permute list", () {
-      expect(permute([1, 2, 3]), allOf(hasLength(6), containsAll([
+      expect(permute([1, 2, 3]), allOf(hasLength(6), containsAll(<List<int>>[
         [1, 2, 3],
         [1, 3, 2],
         [2, 1, 3],

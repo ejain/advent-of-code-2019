@@ -218,7 +218,7 @@ class Reactor {
   final Map<Chemical, Reaction> _reactions;
 
   Reactor(List<Reaction> reactions) :
-    _reactions = Map.fromIterable(reactions, key: (reaction) => reaction.product.chemical);
+    _reactions = Map.fromEntries(reactions.map((reaction) => MapEntry(reaction.product.chemical, reaction)));
 
   static Reactor parse(String s) {
     return Reactor(s.trim().split("\n").map((line) => line.trim()).map(Reaction.parse).toList());

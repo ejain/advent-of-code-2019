@@ -40,7 +40,7 @@ void main() {
     List<int> fft(List<int> input) {
       final output = <int>[];
       for (var i = 0; i < input.length; ++i) {
-        final products = zip(input.skip(i), factors(i + 1).skip(i), (a, b) => a * b);
+        final products = zip(input.skip(i), factors(i + 1).skip(i), (int a, int b) => a * b);
         output.add(products.reduce((a, b) => a + b).abs() % 10);
       }
       return output;
@@ -53,7 +53,7 @@ void main() {
       expect(fft([0, 3, 4, 1, 5, 5, 1, 8]), [0, 1, 0, 2, 9, 4, 9, 8]);
     });
 
-    String decode(String input, { phases = 100 }) {
+    String decode(String input, { int phases = 100 }) {
       var output = input.split("").map(int.parse).toList();
       for (var phase = 0; phase < phases; ++phase) {
         output = fft(output);
@@ -89,7 +89,7 @@ void main() {
       expect(fftEstimate([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]), [1, 0, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
     });
 
-    String offsetDecode(String input, { phases = 100 }) {
+    String offsetDecode(String input, { int phases = 100 }) {
       final offset = int.parse(input.substring(0, 7));
       var signal = input.substring(offset).split("").map(int.parse).toList();
       for (var phase = 0; phase < phases; ++phase) {

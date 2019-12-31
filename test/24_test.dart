@@ -177,7 +177,7 @@ class State extends Equatable {
   int rate() {
     var points = 0;
     for (var i = 0; i < _tiles.length; ++i) {
-      points += _tiles[i] * pow(2, i);
+      points += _tiles[i] * pow(2, i).toInt();
     }
     return points;
   }

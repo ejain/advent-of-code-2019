@@ -11,7 +11,7 @@ void main() {
   group("Day 23", () {
 
     void run(Iterable<Node> nodes) {
-      final network = Map.fromIterable(nodes, key: (node) => node.id);
+      final network = Map.fromEntries(nodes.map((node) => MapEntry(node.id, node)));
       for (final node in cycle(network.values)) {
         for (final packet in node.run()) {
           if (!network.containsKey(packet.destination)) {

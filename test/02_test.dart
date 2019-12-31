@@ -58,7 +58,7 @@ void main() {
     });
 
     test("Part 2", () {
-      var answer;
+      int answer;
       for (var noun = 0; noun < 100; ++noun) {
         for (var verb = 0; verb < 100; ++verb) {
           if (attempt(noun, verb) == 19690720) {

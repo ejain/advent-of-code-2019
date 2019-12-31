@@ -52,7 +52,7 @@ class Robot {
 
   Robot._(this._intcode, this._path);
 
-  Robot(Iterable<int> codes, [ Point position = const Point(0, 0) ]) : this._(Intcode(codes, []), [position]);
+  Robot(List<int> codes, [ Point position = const Point(0, 0) ]) : this._(Intcode(codes, []), [position]);
 
   Robot copy() => Robot._(_intcode.copy(), List.of(_path));
 

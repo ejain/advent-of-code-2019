@@ -317,7 +317,7 @@ class Program {
   }
 
   static bool startsWith<T>(List<T> items, List<T> prefix) {
-    return items.length >= prefix.length && const ListEquality().equals(items.sublist(0, prefix.length), prefix);
+    return items.length >= prefix.length && ListEquality<T>().equals(items.sublist(0, prefix.length), prefix);
   }
 
   static int _toChar(String s) {

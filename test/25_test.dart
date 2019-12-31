@@ -26,7 +26,7 @@ void main() {
     Iterable<Set<T>> subsets<T>(List<T> items) sync* {
       yield {};
       for (var i = 0; i < items.length; ++i) {
-        for (final subset in subsets(i + 1 < items.length ? items.sublist(i + 1) : const [])) {
+        for (final subset in subsets(i + 1 < items.length ? items.sublist(i + 1) : <T>[])) {
           yield {items[i], ...subset};
         }
       }

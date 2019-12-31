@@ -20,7 +20,7 @@ void main() {
     });
 
     test("multiply using both position and immediate modes", () {
-      expect(run([1002, 4, 3, 4, 33], []), []);
+      expect(run([1002, 4, 3, 4, 33], []), <int>[]);
     });
 
     List<int> input() => File("data/05.txt")

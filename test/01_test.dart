@@ -6,7 +6,7 @@ void main() {
 
   group("Day 1", () {
 
-    int calculateFuel(int mass, {includeFuelMass = false}) {
+    int calculateFuel(int mass, {bool includeFuelMass = false}) {
       var fuel = mass ~/ 3 - 2;
       if (includeFuelMass && fuel > 6) {
         fuel += calculateFuel(fuel, includeFuelMass: includeFuelMass);

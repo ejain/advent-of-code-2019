@@ -149,7 +149,7 @@ class System extends Equatable {
 
   System _simulate() => System(moons.map((moon) {
     return moons.where((other) => !identical(other, moon))
-      .fold(moon, (moon, other) => moon.applyGravity(other._position))
+      .fold(moon, (Moon moon, Moon other) => moon.applyGravity(other._position))
       .applyVelocity();
   }));
 
@@ -195,7 +195,7 @@ class System1D extends Equatable {
 
   System1D _simulate() => System1D(moons.map((moon) {
     return moons.where((other) => !identical(other, moon))
-      .fold(moon, (moon, other) => moon.applyGravity(other._position))
+      .fold(moon, (Moon1D moon, Moon1D other) => moon.applyGravity(other._position))
       .applyVelocity();
   }));
 

@@ -9,7 +9,7 @@ void main() {
     Iterable<int> toDigits(int n) => n.toString().split("").map(int.parse);
 
     bool nonDecreasing(Iterable<int> digits) {
-      var prevDigit;
+      int prevDigit;
       for (var digit in digits) {
         if (prevDigit != null && digit < prevDigit) {
           return false;
@@ -26,7 +26,7 @@ void main() {
     });
 
     bool hasRepeat(Iterable<int> digits) {
-      var prevDigit;
+      int prevDigit;
       for (var digit in digits) {
         if (prevDigit != null && digit == prevDigit) {
           return true;
@@ -57,8 +57,8 @@ void main() {
     });
 
     bool hasSingleRepeat(Iterable<int> digits) {
-      var prevDigit;
-      var prevDigitRepeats;
+      int prevDigit;
+      int prevDigitRepeats;
       for (var digit in digits) {
         if (prevDigit != null && digit == prevDigit) {
           ++prevDigitRepeats;

@@ -75,10 +75,10 @@ class System {
 
   final Map<String, String> _orbits;
 
-  System.parse(Iterable<String> lines) : _orbits = Map.fromIterable(
-    lines.map((line) => line.trim().split(")")),
-    key: (tokens) => tokens[1],
-    value: (tokens) => tokens[0]);
+  System.parse(Iterable<String> lines) : _orbits = Map.fromEntries(lines.map((line) {
+    final tokens = line.trim().split(")");
+    return MapEntry(tokens[1], tokens[0]);
+  }));
 
   int depthOf(String satellite) {
     checkArgument(_orbits.containsKey(satellite), message: "not a satellite: $satellite");
